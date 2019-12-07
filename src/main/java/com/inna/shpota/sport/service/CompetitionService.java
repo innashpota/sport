@@ -2,9 +2,9 @@ package com.inna.shpota.sport.service;
 
 import com.inna.shpota.sport.data.MatchResult;
 import com.inna.shpota.sport.data.Result;
-import com.inna.shpota.sport.entity.Competition;
-import com.inna.shpota.sport.entity.Match;
-import com.inna.shpota.sport.entity.Round;
+import com.inna.shpota.sport.models.Competition;
+import com.inna.shpota.sport.models.Match;
+import com.inna.shpota.sport.models.Round;
 import com.inna.shpota.sport.repository.CompetitionRepository;
 import org.springframework.stereotype.Service;
 

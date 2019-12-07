@@ -1,8 +1,8 @@
 package com.inna.shpota.sport.controller;
 
 import com.inna.shpota.sport.data.MatchResult;
-import com.inna.shpota.sport.entity.Competition;
-import com.inna.shpota.sport.entity.Round;
+import com.inna.shpota.sport.models.Competition;
+import com.inna.shpota.sport.models.Round;
 import com.inna.shpota.sport.service.CompetitionService;
 import org.springframework.util.Assert;
 import org.springframework.web.bind.annotation.*;
