@@ -1,4 +1,4 @@
-package com.inna.shpota.sport.entity;
+package com.inna.shpota.sport.models;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;

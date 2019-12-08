@@ -2,15 +2,17 @@ package com.inna.shpota.sport.service;
 
 import com.inna.shpota.sport.data.MatchResult;
 import com.inna.shpota.sport.data.Result;
-import com.inna.shpota.sport.entity.Competition;
-import com.inna.shpota.sport.entity.Match;
-import com.inna.shpota.sport.entity.Round;
+import com.inna.shpota.sport.models.Competition;
+import com.inna.shpota.sport.models.Match;
+import com.inna.shpota.sport.models.Round;
 import com.inna.shpota.sport.repository.CompetitionRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
+import static java.util.stream.Collectors.toList;
 
 @Service
 public class CompetitionService {
@@ -52,15 +54,73 @@ public class CompetitionService {
         }
     }
 
-    public List<Result> playedMatches(String name) {
+    public List<Match> playedMatches(String name) {
         Competition competition = repository.findByName(name);
-        List<Result> results = new ArrayList<>();
+        List<Round> rounds = competition.getRounds();
+        return rounds.stream()
+                .map(Round::getMatches)
+                .flatMap(List::stream)
+                .filter(Match::isPlayed)
+                .collect(toList());
+    }
 
+    public List<Match> notPlayedMatches(String name) {
+        Competition competition = repository.findByName(name);
+        List<Round> rounds = competition.getRounds();
+        return rounds.stream()
+                .map(Round::getMatches)
+                .flatMap(List::stream)
+                .filter(match -> !match.isPlayed())
+                .collect(toList());
+    }
 
+    public List<Result> results(String name) {
+        Competition competition = repository.findByName(name);
+        List<Round> rounds = competition.getRounds();
+        int numberOfTeams = competition.getNumberOfTeams();
+        List<String> teams = createTeams(numberOfTeams);
+        List<Result> results = new ArrayList<>(numberOfTeams);
+        for (String team : teams) {
+            Result result = new Result();
+            result.setTeam(team);
+            List<Match> teamMatches = rounds.stream()
+                    .map(Round::getMatches)
+                    .flatMap(List::stream)
+                    .filter(m -> m.getFirstTeam().equals(team) || m.getSecondTeam().equals(team))
+                    .collect(toList());
+            result.setPlayedMatchesCount(getPlayedMatches(teamMatches));
+            result.setWins(getWins(team, teamMatches));
+            result.setLose(getLose(team, teamMatches));
+            result.setDraws(result.getPlayedMatchesCount() - result.getWins() - result.getLose());
+            result.setPoints(result.getWins() * 3 + result.getDraws());
+            results.add(result);
+        }
         return results;
     }
 
-    public List<Round> createSchedule(int numberOfTeams) {
+    private int getLose(String team, List<Match> teamMatches) {
+        return (int) teamMatches.stream()
+                .filter(Match::isPlayed)
+                .map(Match::getWinner)
+                .filter(w -> w != null && !w.isEmpty() && !w.equals(team))
+                .count();
+    }
+
+    private int getWins(String team, List<Match> teamMatches) {
+        return (int) teamMatches.stream()
+                .filter(Match::isPlayed)
+                .map(Match::getWinner)
+                .filter(w -> w != null && !w.isEmpty() && w.equals(team))
+                .count();
+    }
+
+    private int getPlayedMatches(List<Match> teamMatches) {
+        return (int) teamMatches.stream()
+                .filter(Match::isPlayed)
+                .count();
+    }
+
+    private List<Round> createSchedule(int numberOfTeams) {
         List<String> teams = createTeams(numberOfTeams);
         int numberOfRounds = numberOfTeams % 2 == 0 ? (numberOfTeams - 1) * 2 : numberOfTeams * 2;
         int matchesPerRound = numberOfTeams / 2;
